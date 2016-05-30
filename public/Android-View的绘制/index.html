@@ -1,0 +1,694 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="View," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content=".View的绘制流程分几步，从哪开始？哪个过程结束以后能看到view？
+1从ViewRoot的performTraversals开始，经过measure，layout,draw 三个流程。draw流程结束以后就可以在屏幕上看到view了。
+
+
+
+view的测量宽高和实际宽高有区别吗？
+1基本上百分之99的情况下都是可以认为没有区别的。有两种情况，有区别。第一种 就是有的时候会因为某些原因 vie">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android View的绘制">
+<meta property="og:url" content="http://yoursite.com/Android-View的绘制/index.html">
+<meta property="og:site_name" content="weilinhu">
+<meta property="og:description" content=".View的绘制流程分几步，从哪开始？哪个过程结束以后能看到view？
+1从ViewRoot的performTraversals开始，经过measure，layout,draw 三个流程。draw流程结束以后就可以在屏幕上看到view了。
+
+
+
+view的测量宽高和实际宽高有区别吗？
+1基本上百分之99的情况下都是可以认为没有区别的。有两种情况，有区别。第一种 就是有的时候会因为某些原因 vie">
+<meta property="og:updated_time" content="2016-05-30T12:23:23.266Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android View的绘制">
+<meta name="twitter:description" content=".View的绘制流程分几步，从哪开始？哪个过程结束以后能看到view？
+1从ViewRoot的performTraversals开始，经过measure，layout,draw 三个流程。draw流程结束以后就可以在屏幕上看到view了。
+
+
+
+view的测量宽高和实际宽高有区别吗？
+1基本上百分之99的情况下都是可以认为没有区别的。有两种情况，有区别。第一种 就是有的时候会因为某些原因 vie">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Android View的绘制 | weilinhu </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?99265ea577a6c3d923d2c6aa23ab5719";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">weilinhu</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">weilinhu</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Android View的绘制
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-05-30T20:20:47+08:00" content="2016-05-30">
+              2016-05-30
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/View/" itemprop="url" rel="index">
+                    <span itemprop="name">View</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/Android-View的绘制/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="Android-View的绘制/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li><p>.View的绘制流程分几步，从哪开始？哪个过程结束以后能看到view？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">从ViewRoot的performTraversals开始，经过measure，layout,draw 三个流程。draw流程结束以后就可以在屏幕上看到view了。</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ul>
+<li><p>view的测量宽高和实际宽高有区别吗？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">基本上百分之99的情况下都是可以认为没有区别的。有两种情况，有区别。第一种 就是有的时候会因为某些原因 view会多次测量，那第一次测量的宽高 肯定和最后实际的宽高 是不一定相等的，但是在这种情况下最后一次测量的宽高和实际宽高是一致的。此外，实际宽高是在layout流程里确定的，我们可以在layout流程里 将实际宽高写死 写成硬编码，这样测量的宽高和实际宽高就肯定不一样了，虽然这么做没有意义 而且也不好。</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<a id="more"></a>
+<ul>
+<li>view的measureSpec 由谁决定?顶级view呢？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">由view自己的layoutparams和父容器  一起决定自己的measureSpec。一旦确定了spec，onMeasure中就可以确定view的宽高了。</span><br><span class="line"></span><br><span class="line">顶级view就稍微特殊一点，对于decorView的测量在ViewRootImpl的源码里。</span><br><span class="line"></span><br><span class="line">/desire的这2个参数就代表屏幕的宽高，</span><br><span class="line">  childWidthMeasureSpec = getRootMeasureSpec(desiredWindowWidth, lp.width);</span><br><span class="line">  childHeightMeasureSpec = getRootMeasureSpec(desiredWindowHeight, lp.height);</span><br><span class="line">  performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);</span><br><span class="line"></span><br><span class="line">  //decorView的measureSpec就是在这里确定的，其实比普通view的measurespec要简单的多</span><br><span class="line">  //代码就不分析了 一目了然的东西</span><br><span class="line">  private static int getRootMeasureSpec(int windowSize, int rootDimension) &#123;</span><br><span class="line">        int measureSpec;</span><br><span class="line">        switch (rootDimension) &#123;</span><br><span class="line"></span><br><span class="line">        case ViewGroup.LayoutParams.MATCH_PARENT:</span><br><span class="line">            // Window can&apos;t resize. Force root view to be windowSize.</span><br><span class="line">            measureSpec = MeasureSpec.makeMeasureSpec(windowSize, MeasureSpec.EXACTLY);</span><br><span class="line">            break;</span><br><span class="line">        case ViewGroup.LayoutParams.WRAP_CONTENT:</span><br><span class="line">            // Window can resize. Set max size for root view.</span><br><span class="line">            measureSpec = MeasureSpec.makeMeasureSpec(windowSize, MeasureSpec.AT_MOST);</span><br><span class="line">            break;</span><br><span class="line">        default:</span><br><span class="line">            // Window wants to be an exact size. Force root view to be that size.</span><br><span class="line">            measureSpec = MeasureSpec.makeMeasureSpec(rootDimension, MeasureSpec.EXACTLY);</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">        return measureSpec;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对于普通view来说，他的measure过程中，与父view有关吗？如果有关，这个父view也就是viewgroup扮演了什么角色？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line">//对于普通view的measure来说 是由这个view的 父view ，也就是viewgroup来触发的。</span><br><span class="line">//也就是下面这个measureChildWithMargins方法</span><br><span class="line"></span><br><span class="line">protected void measureChildWithMargins(View child,</span><br><span class="line">            int parentWidthMeasureSpec, int widthUsed,</span><br><span class="line">            int parentHeightMeasureSpec, int heightUsed) &#123;</span><br><span class="line">         //第一步 先取得子view的 layoutParams 参数值   </span><br><span class="line">        final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();</span><br><span class="line"></span><br><span class="line">        //然后开始计算子view的spec的值，注意这里看到 计算的时候除了要用子view的 layoutparams参数以外</span><br><span class="line">        //还用到了父view 也就是viewgroup自己的spec的值</span><br><span class="line">        final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,</span><br><span class="line">                mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin</span><br><span class="line">                        + widthUsed, lp.width);</span><br><span class="line">        final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,</span><br><span class="line">                mPaddingTop + mPaddingBottom + lp.topMargin + lp.bottomMargin</span><br><span class="line">                        + heightUsed, lp.height);</span><br><span class="line"></span><br><span class="line">        child.measure(childWidthMeasureSpec, childHeightMeasureSpec);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//这个算view的spec的方法 看上去一大串 但是真的逻辑非常简单 就是根据父亲viewgroup</span><br><span class="line">//的meaurespec 同时还有view自己的params来确定 view自己的measureSpec。</span><br><span class="line">//注意这里的参数是padding,这个值的含义是 父容器已占用的控件的大小 所以view的Specsize</span><br><span class="line">//的值 你们可以看到 是要减去这个padding的值的。总大小-已经用的 =可用的。 很好理解。</span><br><span class="line"></span><br><span class="line">//然后就是下面的switch逻辑 要自己梳理清楚。其实也不难，主要是下面几条原则</span><br><span class="line">//如果view采用固定宽高，也就是写死的数值那种。那就不管父亲的spec的值了，view的spec 就肯定是exactly 并且大小遵循layout参数里设置的大小。</span><br><span class="line"></span><br><span class="line">//如果view的宽高是match_parent ，那么就要看父容器viewgroup的 spec的值了，如果父view的spec是exactly模式，</span><br><span class="line">//那view也肯定是exactly,并且大小就是父容器剩下的空间。如果父容器是at_most模式，那view也是at_most 并且不会超过剩余空间大小</span><br><span class="line"></span><br><span class="line">//如果view的宽高是wrap_content, 那就不管父容器的spec了，view的spec一定是at_most 并且不会超过父view 剩余空间的大小。</span><br><span class="line"></span><br><span class="line">public static int getChildMeasureSpec(int spec, int padding, int childDimension) &#123;</span><br><span class="line">        int specMode = MeasureSpec.getMode(spec);</span><br><span class="line">        int specSize = MeasureSpec.getSize(spec);</span><br><span class="line"></span><br><span class="line">        int size = Math.max(0, specSize - padding);</span><br><span class="line"></span><br><span class="line">        int resultSize = 0;</span><br><span class="line">        int resultMode = 0;</span><br><span class="line"></span><br><span class="line">        switch (specMode) &#123;</span><br><span class="line">        // Parent has imposed an exact size on us</span><br><span class="line">        case MeasureSpec.EXACTLY:</span><br><span class="line">            if (childDimension &gt;= 0) &#123;</span><br><span class="line">                resultSize = childDimension;</span><br><span class="line">                resultMode = MeasureSpec.EXACTLY;</span><br><span class="line">            &#125; else if (childDimension == LayoutParams.MATCH_PARENT) &#123;</span><br><span class="line">                // Child wants to be our size. So be it.</span><br><span class="line">                resultSize = size;</span><br><span class="line">                resultMode = MeasureSpec.EXACTLY;</span><br><span class="line">            &#125; else if (childDimension == LayoutParams.WRAP_CONTENT) &#123;</span><br><span class="line">                // Child wants to determine its own size. It can&apos;t be</span><br><span class="line">                // bigger than us.</span><br><span class="line">                resultSize = size;</span><br><span class="line">                resultMode = MeasureSpec.AT_MOST;</span><br><span class="line">            &#125;</span><br><span class="line">            break;</span><br><span class="line"></span><br><span class="line">        // Parent has imposed a maximum size on us</span><br><span class="line">        case MeasureSpec.AT_MOST:</span><br><span class="line">            if (childDimension &gt;= 0) &#123;</span><br><span class="line">                // Child wants a specific size... so be it</span><br><span class="line">                resultSize = childDimension;</span><br><span class="line">                resultMode = MeasureSpec.EXACTLY;</span><br><span class="line">            &#125; else if (childDimension == LayoutParams.MATCH_PARENT) &#123;</span><br><span class="line">                // Child wants to be our size, but our size is not fixed.</span><br><span class="line">                // Constrain child to not be bigger than us.</span><br><span class="line">                resultSize = size;</span><br><span class="line">                resultMode = MeasureSpec.AT_MOST;</span><br><span class="line">            &#125; else if (childDimension == LayoutParams.WRAP_CONTENT) &#123;</span><br><span class="line">                // Child wants to determine its own size. It can&apos;t be</span><br><span class="line">                // bigger than us.</span><br><span class="line">                resultSize = size;</span><br><span class="line">                resultMode = MeasureSpec.AT_MOST;</span><br><span class="line">            &#125;</span><br><span class="line">            break;</span><br><span class="line"></span><br><span class="line">        // Parent asked to see how big we want to be</span><br><span class="line">        case MeasureSpec.UNSPECIFIED:</span><br><span class="line">            if (childDimension &gt;= 0) &#123;</span><br><span class="line">                // Child wants a specific size... let him have it</span><br><span class="line">                resultSize = childDimension;</span><br><span class="line">                resultMode = MeasureSpec.EXACTLY;</span><br><span class="line">            &#125; else if (childDimension == LayoutParams.MATCH_PARENT) &#123;</span><br><span class="line">                // Child wants to be our size... find out how big it should</span><br><span class="line">                // be</span><br><span class="line">                resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;</span><br><span class="line">                resultMode = MeasureSpec.UNSPECIFIED;</span><br><span class="line">            &#125; else if (childDimension == LayoutParams.WRAP_CONTENT) &#123;</span><br><span class="line">                // Child wants to determine its own size.... find out how</span><br><span class="line">                // big it should be</span><br><span class="line">                resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;</span><br><span class="line">                resultMode = MeasureSpec.UNSPECIFIED;</span><br><span class="line">            &#125;</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">        return MeasureSpec.makeMeasureSpec(resultSize, resultMode);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>.view的meaure和onMeasure有什么关系？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">//view的measure是final 方法 我们子类无法修改的。</span><br><span class="line"> public final void measure(int widthMeasureSpec, int heightMeasureSpec) &#123;</span><br><span class="line">        boolean optical = isLayoutModeOptical(this);</span><br><span class="line">        if (optical != isLayoutModeOptical(mParent)) &#123;</span><br><span class="line">            Insets insets = getOpticalInsets();</span><br><span class="line">            int oWidth  = insets.left + insets.right;</span><br><span class="line">            int oHeight = insets.top  + insets.bottom;</span><br><span class="line">            widthMeasureSpec  = MeasureSpec.adjust(widthMeasureSpec,  optical ? -oWidth  : oWidth);</span><br><span class="line">            heightMeasureSpec = MeasureSpec.adjust(heightMeasureSpec, optical ? -oHeight : oHeight);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // Suppress sign extension for the low bytes</span><br><span class="line">        long key = (long) widthMeasureSpec &lt;&lt; 32 | (long) heightMeasureSpec &amp; 0xffffffffL;</span><br><span class="line">        if (mMeasureCache == null) mMeasureCache = new LongSparseLongArray(2);</span><br><span class="line"></span><br><span class="line">        if ((mPrivateFlags &amp; PFLAG_FORCE_LAYOUT) == PFLAG_FORCE_LAYOUT ||</span><br><span class="line">                widthMeasureSpec != mOldWidthMeasureSpec ||</span><br><span class="line">                heightMeasureSpec != mOldHeightMeasureSpec) &#123;</span><br><span class="line"></span><br><span class="line">            // first clears the measured dimension flag</span><br><span class="line">            mPrivateFlags &amp;= ~PFLAG_MEASURED_DIMENSION_SET;</span><br><span class="line"></span><br><span class="line">            resolveRtlPropertiesIfNeeded();</span><br><span class="line"></span><br><span class="line">            int cacheIndex = (mPrivateFlags &amp; PFLAG_FORCE_LAYOUT) == PFLAG_FORCE_LAYOUT ? -1 :</span><br><span class="line">                    mMeasureCache.indexOfKey(key);</span><br><span class="line">            if (cacheIndex &lt; 0 || sIgnoreMeasureCache) &#123;</span><br><span class="line">                // measure ourselves, this should set the measured dimension flag back</span><br><span class="line">                onMeasure(widthMeasureSpec, heightMeasureSpec);</span><br><span class="line">                mPrivateFlags3 &amp;= ~PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                long value = mMeasureCache.valueAt(cacheIndex);</span><br><span class="line">                // Casting a long to int drops the high 32 bits, no mask needed</span><br><span class="line">                setMeasuredDimensionRaw((int) (value &gt;&gt; 32), (int) value);</span><br><span class="line">                mPrivateFlags3 |= PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            // flag not set, setMeasuredDimension() was not invoked, we raise</span><br><span class="line">            // an exception to warn the developer</span><br><span class="line">            if ((mPrivateFlags &amp; PFLAG_MEASURED_DIMENSION_SET) != PFLAG_MEASURED_DIMENSION_SET) &#123;</span><br><span class="line">                throw new IllegalStateException(&quot;View with id &quot; + getId() + &quot;: &quot;</span><br><span class="line">                        + getClass().getName() + &quot;#onMeasure() did not set the&quot;</span><br><span class="line">                        + &quot; measured dimension by calling&quot;</span><br><span class="line">                        + &quot; setMeasuredDimension()&quot;);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            mPrivateFlags |= PFLAG_LAYOUT_REQUIRED;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        mOldWidthMeasureSpec = widthMeasureSpec;</span><br><span class="line">        mOldHeightMeasureSpec = heightMeasureSpec;</span><br><span class="line"></span><br><span class="line">        mMeasureCache.put(key, ((long) mMeasuredWidth) &lt;&lt; 32 |</span><br><span class="line">                (long) mMeasuredHeight &amp; 0xffffffffL); // suppress sign extension</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">//不过可以看到的是在measure方法里调用了onMeasure方法</span><br><span class="line">//所以就能知道 我们在自定义view的时候一定是重写这个方法！</span><br><span class="line"> protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) &#123;</span><br><span class="line">        setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),</span><br><span class="line">                getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>简要分析view的measure流程？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">viewgroup 算出子view的spec以后 会调用子view的measure方法，而子view的measure方法 我们问题5也看过了实际上是调用的onMeasure方法。</span><br><span class="line"></span><br><span class="line">所以我们只要分析好onMeasure方法即可，注意onMeasure方法的参数 正是他的父view算出来的那2个spec的值(这里view的measure方法会把这个spec里的specSize值做略微的修改 这个部分 不做分析 因为measure方法修改specSize的部分很简单)。</span><br><span class="line"></span><br><span class="line">//可以看出来这个就是setMeasuredDimension方法的调用 这个方法看名字就知道就是确定view的测量宽高的</span><br><span class="line">//所以我们分析的重点就是看这个getDefaultSize 方法 是怎么确定view的测量宽高的</span><br><span class="line"> protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) &#123;</span><br><span class="line">        setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),</span><br><span class="line">                getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//这个方法特别简单 基本可以认为就是近似的返回spec中的specSize，除非你的specMode是UNSPECIFIED</span><br><span class="line">//UNSPECIFIED 这个一般都是系统内部测量才用的到，这种时候返回size 也就是getSuggestedMinimumWidth的返回值</span><br><span class="line"> public static int getDefaultSize(int size, int measureSpec) &#123;</span><br><span class="line">        int result = size;</span><br><span class="line">        int specMode = MeasureSpec.getMode(measureSpec);</span><br><span class="line">        int specSize = MeasureSpec.getSize(measureSpec);</span><br><span class="line"></span><br><span class="line">        switch (specMode) &#123;</span><br><span class="line">        case MeasureSpec.UNSPECIFIED:</span><br><span class="line">            result = size;</span><br><span class="line">            break;</span><br><span class="line">        case MeasureSpec.AT_MOST:</span><br><span class="line">        case MeasureSpec.EXACTLY:</span><br><span class="line">            result = specSize;</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">        return result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//跟view的背景相关 这里不多做分析了</span><br><span class="line">protected int getSuggestedMinimumWidth() &#123;</span><br><span class="line">        return (mBackground == null) ? mMinWidth : max(mMinWidth, mBackground.getMinimumWidth());</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>.自定义view中 如果onMeasure方法 没有对wrap_content 做处理 会发生什么？为什么？怎么解决？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> 如果没有对wrap_content做处理 ，那即使你在xml里设置为wrap_content.其效果也和match_parent相同。看问题4的分析。我们可以知道view自己的layout为wrap，那mode就是at_most（不管父亲view是什么specmode）.</span><br><span class="line"></span><br><span class="line">这种模式下宽高就是等于specSize(getDefaultSize函数分析可知)，而这里的specSize显然就是parentSize的大小。也就是父容器剩余的大小。那不就和我们直接设置成match_parent是一样的效果了么？</span><br><span class="line"></span><br><span class="line">解决方式就是在onMeasure里 针对wrap 来做特殊处理 比如指定一个默认的宽高，当发现是wrap_content 就设置这个默认宽高即可。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>为什么在activity的生命周期里无法获得测量宽高？有什么方法可以解决这个问题吗？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">因为measure的过程和activity的生命周期  没有任何关系。你无法确定在哪个生命周期执行完毕以后 view的measure过程一定走完。可以尝试如下几种方法 获取view的测量宽高。</span><br><span class="line"></span><br><span class="line">//重写activity的这个方法</span><br><span class="line">public void onWindowFocusChanged(boolean hasFocus) &#123;</span><br><span class="line">        super.onWindowFocusChanged(hasFocus);</span><br><span class="line">        if (hasFocus) &#123;</span><br><span class="line">            int width = tv.getMeasuredWidth();</span><br><span class="line">            int height = tv.getMeasuredHeight();</span><br><span class="line">            Log.v(&quot;burning&quot;, &quot;width==&quot; + width);</span><br><span class="line">            Log.v(&quot;burning&quot;, &quot;height==&quot; + height);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">或者重写这个方法</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">    protected void onStart() &#123;</span><br><span class="line">        super.onStart();</span><br><span class="line">        tv.post(new Runnable() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void run() &#123;</span><br><span class="line">                int width = tv.getMeasuredWidth();</span><br><span class="line">                int height = tv.getMeasuredHeight();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">再或者：</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">    protected void onStart() &#123;</span><br><span class="line">        super.onStart();</span><br><span class="line">        ViewTreeObserver observer = tv.getViewTreeObserver();</span><br><span class="line">        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void onGlobalLayout() &#123;</span><br><span class="line">                int width = tv.getMeasuredWidth();</span><br><span class="line">                int height = tv.getMeasuredHeight();</span><br><span class="line">                tv.getViewTreeObserver().removeOnGlobalLayoutListener(this);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>layout和onLayout方法有什么区别？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">layout是确定本身view的位置 而onLayout是确定所有子元素的位置。layout里面 就是通过serFrame方法设设定本身view的 四个顶点的位置。这4个位置以确定 自己view的位置就固定了。</span><br><span class="line"></span><br><span class="line">然后就调用onLayout来确定子元素的位置。view和viewgroup的onlayout方法都没有写。都留给我们自己给子元素布局</span><br></pre></td></tr></table></figure>
+<ul>
+<li>draw方法 大概有几个步骤？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">一共是4个步骤， 绘制背景---------绘制自己--------绘制chrildren----绘制装饰。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>setWillNotDraw方法有什么用？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">这个方法在view里。</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">     * If this view doesn&apos;t do any drawing on its own, set this flag to</span><br><span class="line">     * allow further optimizations. By default, this flag is not set on</span><br><span class="line">     * View, but could be set on some View subclasses such as ViewGroup.</span><br><span class="line">     *</span><br><span class="line">     * Typically, if you override &#123;@link #onDraw(android.graphics.Canvas)&#125;</span><br><span class="line">     * you should clear this flag.</span><br><span class="line">     *</span><br><span class="line">     * @param willNotDraw whether or not this View draw on its own</span><br><span class="line">     */</span><br><span class="line">    public void setWillNotDraw(boolean willNotDraw) &#123;</span><br><span class="line">        setFlags(willNotDraw ? WILL_NOT_DRAW : 0, DRAW_MASK);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">用于设置标志位的 也就是说 如果你的自定义view 不需要draw的话，就可以设置这个方法为true。这样系统知道你这个view 不需要draw 可以优化执行速度。viewgroup 一般都默认设置这个为true，因为viewgroup多数都是只负责布局，不负责draw的。而view 这个标志位 默认一般都是关闭的。</span><br></pre></td></tr></table></figure>
+<ul>
+<li>自定义view 有哪些需要注意的点？</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"> 主要是要处理wrap_content 和padding。否则xml 那边设置这2个属性就根本没用了。还有不要在view中使用handler 因为人家已经提供了post方法。如果是继承自viewGroup,那在onMeasure和onLayout里面 也要考虑padding和layout的影响。也就是说specSize 要算一下 。最后就是如果view的动画或者线程需要停止，可以考虑在onDetachedFromWindow里面来做。</span><br><span class="line"></span><br><span class="line">针对上述的几点，给出几个简单的自定义view 供大家理解。</span><br><span class="line"></span><br><span class="line">给出一个圆形的view 范例：</span><br><span class="line"></span><br><span class="line">package com.example.administrator.motioneventtest;</span><br><span class="line"></span><br><span class="line">import android.content.Context;</span><br><span class="line">import android.graphics.Canvas;</span><br><span class="line">import android.graphics.Color;</span><br><span class="line">import android.graphics.Paint;</span><br><span class="line">import android.util.AttributeSet;</span><br><span class="line">import android.view.View;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * Created by Administrator on 2016/2/4.</span><br><span class="line"> */</span><br><span class="line">public class CircleView extends View &#123;</span><br><span class="line"></span><br><span class="line">    private int mColor = Color.RED;</span><br><span class="line">    private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);</span><br><span class="line"></span><br><span class="line">    private void init() &#123;</span><br><span class="line">        mPaint.setColor(mColor);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) &#123;</span><br><span class="line">        super.onMeasure(widthMeasureSpec, heightMeasureSpec);</span><br><span class="line">        int widthSpecMode = MeasureSpec.getMode(widthMeasureSpec);</span><br><span class="line">        int widthSpecSize = MeasureSpec.getSize(widthMeasureSpec);</span><br><span class="line">        int heightSpecMode = MeasureSpec.getMode(heightMeasureSpec);</span><br><span class="line">        int heightSpecSize = MeasureSpec.getSize(heightMeasureSpec);</span><br><span class="line"></span><br><span class="line">        //处理为wrap_content时的情况</span><br><span class="line">        if (widthSpecMode == MeasureSpec.AT_MOST &amp;&amp; heightSpecMode == MeasureSpec.AT_MOST) &#123;</span><br><span class="line">            setMeasuredDimension(200, 200);</span><br><span class="line">        &#125; else if (widthSpecMode == MeasureSpec.AT_MOST) &#123;</span><br><span class="line">            setMeasuredDimension(200, heightSpecSize);</span><br><span class="line">        &#125; else if (heightSpecMode == MeasureSpec.AT_MOST) &#123;</span><br><span class="line">            setMeasuredDimension(widthSpecSize, 200);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected void onDraw(Canvas canvas) &#123;</span><br><span class="line">        super.onDraw(canvas);</span><br><span class="line">        //处理padding的情况</span><br><span class="line">        final int paddingLeft = getPaddingLeft();</span><br><span class="line">        final int paddingRight = getPaddingRight();</span><br><span class="line">        final int paddingTop = getPaddingTop();</span><br><span class="line">        final int paddingBottom = getPaddingBottom();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        int width = getWidth() - paddingLeft - paddingRight;</span><br><span class="line">        int height = getHeight() - paddingTop - paddingBottom;</span><br><span class="line">        int radius = Math.min(width, height) / 2;</span><br><span class="line">        canvas.drawCircle(paddingLeft + width / 2, paddingTop + height / 2, radius, mPaint);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public CircleView(Context context, AttributeSet attrs, int defStyleAttr) &#123;</span><br><span class="line">        super(context, attrs, defStyleAttr);</span><br><span class="line">        init();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public CircleView(Context context) &#123;</span><br><span class="line">        super(context);</span><br><span class="line">        init();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public CircleView(Context context, AttributeSet attrs) &#123;</span><br><span class="line">        super(context, attrs);</span><br><span class="line">        init();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">1. Measure 过程决定了 View 的测量宽/高，measure 过程结束后可以通过 getMeasuredWidth 和 getMeasuredHeight 方法获取 View 测量后的宽/高（正常情况下它都等于 View 最后的宽高，但是也有特殊情况）</span><br><span class="line">2. Layout 决定了四个顶点的坐标和实际 View 的宽和高，完成以后可以通过 getTop,getBottom,getLeft,getRight 拿到四个顶点的坐标，通过 getWidth,getHeight得到最终实际的宽高。</span><br><span class="line">3. Draw 决定 View 的显示，只有 draw 执行完毕以后，View 的内容才最终显示到屏幕上。</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/View/" rel="tag">#View</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/自定义View的疑问/" rel="next" title="自定义View的疑问">
+                <i class="fa fa-chevron-left"></i> 自定义View的疑问
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/Handler消息传递机制/" rel="prev" title="Handler消息传递机制">
+                Handler消息传递机制 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="Android-View的绘制/"
+           data-title="Android View的绘制" data-url="http://yoursite.com/Android-View的绘制/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/tuzi.jpg"
+               alt="Wei Linhu" />
+          <p class="site-author-name" itemprop="name">Wei Linhu</p>
+          <p class="site-description motion-element" itemprop="description">live and learn</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wei Linhu</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"weilinhu"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+
+</body>
+</html>
